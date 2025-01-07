@@ -15,7 +15,7 @@ const ProductController = {
     // Add a new product
     store: async (req, res) => {
         try {
-            const { name, description, price, stock, category, isActive } = req.body;
+            const { name, description, price, stock,moq, category, isActive } = req.body;
             
             // Capture image file paths
             const images = req.files.map(file => file.path); 
@@ -25,6 +25,7 @@ const ProductController = {
                 description,
                 price,
                 stock,
+                moq,
                 images,
                 category,
                 isActive: isActive ?? true
@@ -54,16 +55,52 @@ const ProductController = {
     update: async (req, res) => {
         try {
             const { id } = req.params;
-            const { name, description, price, stock, images, category, isActive } = req.body;
-            const updatedProduct = await Product.findByIdAndUpdate(
-                id,
-                { name, description, price, stock, images, category, isActive },
-                { new: true, runValidators: true }
-            );
-            if (!updatedProduct) {
+            const { name, description, price, stock, moq, category, isActive } = req.body;
+    
+            const product = await Product.findById(id);
+            if (!product) {
                 return res.status(404).json({ message: "Product not found" });
             }
+    
+            // Keep existing images and add new ones if uploaded
+            const newImages = req.files.map(file => file.path);
+            const allImages = [...product.images, ...newImages];
+    
+            const updatedProduct = await Product.findByIdAndUpdate(
+                id,
+                { name, description, price, stock, moq, images: allImages, category, isActive },
+                { new: true, runValidators: true }
+            );
+    
             res.status(200).json(updatedProduct);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    },
+
+    deleteImage : async (req, res) => {
+        try {
+            const { id } = req.params;
+            const { imagePath } = req.body;
+    
+            const product = await Product.findById(id);
+            if (!product) {
+                return res.status(404).json({ message: "Product not found" });
+            }
+    
+            // Filter out the image to delete
+            const updatedImages = product.images.filter(image => image !== imagePath);
+    
+            // Delete the image from server
+            if (product.images.includes(imagePath)) {
+                fs.unlinkSync(imagePath);
+            }
+    
+            // Update the product with the remaining images
+            product.images = updatedImages;
+            await product.save();
+    
+            res.status(200).json({ message: "Image deleted successfully", product });
         } catch (error) {
             res.status(500).json({ error: error.message });
         }

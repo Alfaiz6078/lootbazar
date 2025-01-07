@@ -10,7 +10,7 @@ if (!fs.existsSync(uploadDir)) {
 
 // Configure multer storage
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
+    destination: (req, file, cb) => {   
         cb(null, uploadDir);
     },
     filename: (req, file, cb) => {
@@ -18,5 +18,14 @@ const storage = multer.diskStorage({
     }
 });
 
-const upload = multer({ storage: storage });
+// File filter for image and video formats
+const fileFilter = (req, file, cb) => {
+    if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
+        cb(null, true);
+    } else {
+        cb(new Error('Invalid file type. Only image and video files are allowed.'));
+    }
+};
+
+const upload = multer({ storage, fileFilter });
 module.exports = upload;

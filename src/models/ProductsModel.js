@@ -23,6 +23,11 @@ const productSchema = new mongoose.Schema({
         required: true,
         min: 0
     },
+    moq: {
+        type: Number,
+        required: true,
+        min: 0
+    },
     images: [{
         type: String, // Array of image URLs
     }],

@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
-    name: {
+    title: {
         type: String,
         required: true,
         trim: true
@@ -15,7 +15,8 @@ const productSchema = new mongoose.Schema({
         min: 0
     },
     category: {
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category',                      
         required: true
     },
     stock: {
@@ -31,22 +32,6 @@ const productSchema = new mongoose.Schema({
     images: [{
         type: String, // Array of image URLs
     }],
-    isActive: {
-        type: Boolean,
-        default: true
-    },
-    ratings: {
-        average: {
-            type: Number,
-            min: 0,
-            max: 5,
-            default: 0
-        },
-        totalReviews: {
-            type: Number,
-            default: 0
-        }
-    }
 }, { timestamps: true });
 
 const Product = mongoose.model('Product', productSchema);

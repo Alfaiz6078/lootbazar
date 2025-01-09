@@ -20,6 +20,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         match: /^[0-9]{6}$/, // Ensures a valid 6-digit pincode
     },
+    profileImage: {
+        type: String, // Stores the path to the uploaded profile image
+    }
+
 }, { timestamps: true });
 
 // Create the model

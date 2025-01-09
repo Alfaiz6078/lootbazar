@@ -5,30 +5,46 @@ const ProductController = {
     // Fetch all products
     index: async (req, res) => {
         try {
-            const products = await Product.find();
-            res.status(200).json(products);
+            // Get page number and limit from query params, default to page 1 and 10 products per page
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 10;
+            
+            // Calculate the number of documents to skip
+            const skip = (page - 1) * limit;
+    
+            // Fetch products with pagination applied
+            const products = await Product.find().skip(skip).limit(limit);
+            
+            // Count total products for pagination metadata
+            const totalProducts = await Product.countDocuments();
+    
+            res.status(200).json({
+                currentPage: page,
+                totalPages: Math.ceil(totalProducts / limit),
+                totalProducts,
+                products
+            });
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
-    },
+    },    
 
     // Add a new product
     store: async (req, res) => {
         try {
-            const { name, description, price, stock,moq, category, isActive } = req.body;
+            const { title, description, price, stock,moq, category } = req.body;
             
             // Capture image file paths
             const images = req.files.map(file => file.path); 
 
             const newProduct = new Product({
-                name,
+                title,
                 description,
                 price,
                 stock,
                 moq,
                 images,
                 category,
-                isActive: isActive ?? true
             });
             const savedProduct = await newProduct.save();
             res.status(201).json(savedProduct);
@@ -55,7 +71,7 @@ const ProductController = {
     update: async (req, res) => {
         try {
             const { id } = req.params;
-            const { name, description, price, stock, moq, category, isActive } = req.body;
+            const { title, description, price, stock, moq, category } = req.body;
     
             const product = await Product.findById(id);
             if (!product) {
@@ -68,7 +84,7 @@ const ProductController = {
     
             const updatedProduct = await Product.findByIdAndUpdate(
                 id,
-                { name, description, price, stock, moq, images: allImages, category, isActive },
+                { name, description, price, stock, moq, images: allImages, category },
                 { new: true, runValidators: true }
             );
     
@@ -119,6 +135,23 @@ const ProductController = {
             res.status(500).json({ error: error.message });
         }
     },
+
+    list: async (req, res) => {
+        try {
+            const { categoryId } = req.params;
+    
+            // Find all products with the provided category ID
+            const products = await Product.find({ category: categoryId }).populate('category');
+    
+            if (products.length === 0) {
+                return res.status(404).json({ message: "No products found for this category." });
+            }
+    
+            res.status(200).json(products);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    }
 };
 
 module.exports = ProductController;

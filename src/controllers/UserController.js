@@ -15,25 +15,25 @@ const UserController = {
     // Create a new user
     store: async (req, res) => {
         try {
-            const { name, mobileno, address, pincode } = req.body;
-
-            // Check if the mobile number already exists
-            const existingUser = await User.findOne({ mobileno });
-            if (existingUser) {
-                return res.status(400).json({ message: "Mobile number already registered" });
-            }
-
+            const { name, mobileno, otp, address, pincode } = req.body;
+            
+            // Capture the uploaded profile image path using multer
+            const profileImage = req.file ? req.file.path.replace(/\\/g, '/') : null;
+    
             const newUser = new User({
                 name,
                 mobileno,
+                otp,
                 address,
-                pincode
+                pincode,
+                profileImage
             });
+    
             const savedUser = await newUser.save();
             res.status(201).json(savedUser);
         } catch (error) {
             res.status(500).json({ error: error.message });
-        }
+        }    
     },
 
     // Fetch a single user by ID
@@ -55,20 +55,32 @@ const UserController = {
         try {
             const { id } = req.params;
             const { name, address, pincode } = req.body;
-
+            
+            // Check if a new profile image was uploaded
+            const profileImage = req.file ? req.file.path.replace(/\\/g, '/') : null;
+            
+            const updateData = { name, address, pincode };
+            
+            // If a new image is provided, add it to the update data
+            if (profileImage) {
+                updateData.profileImage = profileImage;
+            }
+    
             const updatedUser = await User.findByIdAndUpdate(
                 id,
-                { name, address, pincode },
+                updateData,
                 { new: true, runValidators: true }
             );
+    
             if (!updatedUser) {
                 return res.status(404).json({ message: "User not found" });
             }
+    
             res.status(200).json(updatedUser);
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
-    },
+    },    
 
     // Delete a user by ID
     delete: async (req, res) => {

@@ -9,9 +9,9 @@ const StatusController = require('../controllers/StatusController');
 
 //user routes
 router.get('/user/index', userController.index);
-router.post('/register', userController.store);
+router.post('/register', upload.single('profileImage'), userController.store);
 router.get('/profile/:id/edit', userController.edit);
-router.put('/profile/:id/update', userController.update);
+router.put('/profile/:id/update', upload.single('profileImage'),userController.update);
 router.delete('/profile/:id/delete', userController.delete);
 
 //product routes
@@ -21,6 +21,8 @@ router.get('/products/:id/edit', ProductController.edit);
 router.put('/products/:id/update', ProductController.update);   
 router.delete('/products/:id/delete-image', ProductController.deleteImage);
 router.delete('/products/:id/delete', ProductController.delete);
+// GET all products by category ID
+router.get('/products/category/:categoryId', ProductController.list);
 
 //Category routes
 router.get('/categories', CategoryController.index);

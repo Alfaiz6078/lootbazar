@@ -14,10 +14,6 @@ const categorySchema = new mongoose.Schema({
     image: {
         type: String, // URL for category image
     },
-    isActive: {
-        type: Boolean,
-        default: true
-    }
 }, { timestamps: true });
 
 const Category = mongoose.model('Category', categorySchema);

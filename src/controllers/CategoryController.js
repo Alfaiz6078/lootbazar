@@ -15,7 +15,7 @@ const CategoryController = {
     // Add a new category
     store: async (req, res) => {
         try {
-            const { name, description, isActive } = req.body;
+            const { name, description } = req.body;
     
             // Capture the uploaded image path from multer
             const imagePath = req.file ? req.file.path.replace(/\\/g, '/') : null;
@@ -24,7 +24,6 @@ const CategoryController = {
                 name,
                 description,
                 image: imagePath,  // Save image path in the database
-                isActive: isActive ?? true
             });
     
             const savedCategory = await newCategory.save();
@@ -52,7 +51,7 @@ const CategoryController = {
     update: async (req, res) => {
         try {
             const { id } = req.params;
-            const { name, description, image, isActive } = req.body;
+            const { name, description, image } = req.body;
             const updatedCategory = await Category.findByIdAndUpdate(
                 id,
                 { name, description, image, isActive },

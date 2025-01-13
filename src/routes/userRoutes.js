@@ -22,7 +22,13 @@ router.put('/products/:id/update', ProductController.update);
 router.delete('/products/:id/delete-image', ProductController.deleteImage);
 router.delete('/products/:id/delete', ProductController.delete);
 // GET all products by category ID
-router.get('/products/category/:categoryId', ProductController.list);
+router.get('/products/category/:categoryId', ProductController.listBycategoryId);
+// GET all products by user ID
+router.get('/products/user/:userId', ProductController.listByuserId);
+// Search for products
+router.get('/products/search', ProductController.searchProduct);
+// produts details
+router.get('/products/details/:id', ProductController.produtsDetails);
 
 //Category routes
 router.get('/categories', CategoryController.index);

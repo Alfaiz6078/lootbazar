@@ -54,7 +54,7 @@ const CategoryController = {
             const { name, description, image } = req.body;
             const updatedCategory = await Category.findByIdAndUpdate(
                 id,
-                { name, description, image, isActive },
+                { name, description, image },
                 { new: true, runValidators: true }
             );
             if (!updatedCategory) {

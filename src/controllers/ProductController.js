@@ -1,4 +1,5 @@
 const Product = require("../models/ProductsModel");
+const User = require("../models/UserModel");
 
 const ProductController = {
 
@@ -32,8 +33,13 @@ const ProductController = {
     // Add a new product
     store: async (req, res) => {
         try {
-            const { title, description, price, stock,moq, category } = req.body;
-            
+            const { title, description, price, stock,moq, category, userId, location, phoneNumber } = req.body;
+             // Check if userId exists in the database
+            const userExists = await User.findById(userId);
+            if (!userExists) {
+                return res.status(404).json({ message: "User not found" });
+            }
+
             // Capture image file paths
             const images = req.files.map(file => file.path); 
 
@@ -45,6 +51,9 @@ const ProductController = {
                 moq,
                 images,
                 category,
+                userId,
+                location,
+                phoneNumber
             });
             const savedProduct = await newProduct.save();
             res.status(201).json(savedProduct);
@@ -71,7 +80,7 @@ const ProductController = {
     update: async (req, res) => {
         try {
             const { id } = req.params;
-            const { title, description, price, stock, moq, category } = req.body;
+            const { title, description, price, stock, moq, category, userId, location, phoneNumber } = req.body;
     
             const product = await Product.findById(id);
             if (!product) {
@@ -84,7 +93,7 @@ const ProductController = {
     
             const updatedProduct = await Product.findByIdAndUpdate(
                 id,
-                { name, description, price, stock, moq, images: allImages, category },
+                { name, description, price, stock, moq, images: allImages, category, userId, location, phoneNumber },
                 { new: true, runValidators: true }
             );
     
@@ -136,7 +145,7 @@ const ProductController = {
         }
     },
 
-    list: async (req, res) => {
+    listBycategoryId: async (req, res) => {
         try {
             const { categoryId } = req.params;
     
@@ -148,6 +157,59 @@ const ProductController = {
             }
     
             res.status(200).json(products);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    },
+
+    searchProduct: async (req, res) => {
+        try {
+            const { title } = req.query; // Get title from query parameter
+    
+            if (!title) {
+                return res.status(400).json({ error: "Please provide a product title to search." });
+            }
+    
+            // Case-insensitive search using a regular expression
+            const products = await Product.find({
+                title: { $regex: new RegExp(title, "i") }
+            });
+    
+            if (products.length === 0) {
+                return res.status(404).json({ message: "No products found with that title." });
+            }
+    
+            res.status(200).json(products);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    },
+
+    listByuserId: async (req, res) => {
+        try {
+            const { userId } = req.params;
+    
+            // Find all products with the provided category ID
+            const products = await Product.find({ userId: userId }).populate('userId');
+    
+            if (products.length === 0) {
+                return res.status(404).json({ message: "No products found for this user." });
+            }
+    
+            res.status(200).json(products);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    },
+
+    produtsDetails: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const product = await Product.findById(id);
+            if (!product) {
+                return res.status(404).json({ message: "Product not found" });
+            }
+            res.status(200).json(product);
         } catch (error) {
             res.status(500).json({ error: error.message });
         }

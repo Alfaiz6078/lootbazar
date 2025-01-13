@@ -19,6 +19,11 @@ const productSchema = new mongoose.Schema({
         ref: 'Category',                      
         required: true
     },
+    userId: {
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'User',
+        required:true
+    },
     stock: {
         type: Number,
         required: true,
@@ -28,6 +33,12 @@ const productSchema = new mongoose.Schema({
         type: Number,
         required: true,
         min: 0
+    },
+    location: {
+        type: String,
+    },
+    phoneNumber: {
+        type: String,
     },
     images: [{
         type: String, // Array of image URLs

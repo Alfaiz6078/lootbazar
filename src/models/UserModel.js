@@ -8,7 +8,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
         unique: true,
-        match: /^[0-9]{10}$/, // Ensures a valid 10-digit mobile number
+        match: /^\d{12}$/,
     },
     otp: {
         type: String,

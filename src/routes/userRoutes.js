@@ -6,6 +6,7 @@ const userController = require('../controllers/UserController');
 const ProductController = require('../controllers/ProductController');
 const CategoryController = require('../controllers/CategoryController');
 const StatusController = require('../controllers/StatusController');
+const ProfileController = require('../controllers/ProfileController');
 
 //user routes
 router.get('/user/index', userController.index);
@@ -18,7 +19,7 @@ router.delete('/profile/:id/delete', userController.delete);
 router.get('/products', ProductController.index);
 router.post('/products/store', upload.array('images', 5), ProductController.store);
 router.get('/products/:id/edit', ProductController.edit);
-router.put('/products/:id/update', ProductController.update);   
+router.put('/products/:id/update', upload.array('images', 5),ProductController.update);   
 router.delete('/products/:id/delete-image', ProductController.deleteImage);
 router.delete('/products/:id/delete', ProductController.delete);
 // GET all products by category ID
@@ -42,6 +43,12 @@ router.delete('/categories/:id/delete', CategoryController.delete);
 router.post('/status/store', upload.single('media'), StatusController.store);
 router.get('/status', StatusController.index);
 router.delete('/status/:id', StatusController.deleteStatus);
+
+//profile routes
+// Route to track a profile view
+router.post('/profile/view/:viewedUserId', ProfileController.viewProfileuser);
+// Route to list who viewed the profile
+router.get('/profile/views/:viewedUserId', ProfileController.viewProfilelist);
 
 
 module.exports = router;

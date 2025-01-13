@@ -5,11 +5,12 @@ const path = require('path');
 // Create a new status with a video
 const store = async (req, res) => {
     try {
-        const { userId } = req.body;
+        const { userId, productId } = req.body;
         const video = req.file.path; // Using multer to get the uploaded file
 
         const newStatus = new Status({
             userId,
+            productId,
             video
         });
 

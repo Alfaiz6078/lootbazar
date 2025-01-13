@@ -1,6 +1,7 @@
 const Product = require("../models/ProductsModel");
 const User = require("../models/UserModel");
-
+const path = require('path');
+const fs = require('fs');
 const ProductController = {
 
     // Fetch all products
@@ -80,52 +81,68 @@ const ProductController = {
     update: async (req, res) => {
         try {
             const { id } = req.params;
-            const { title, description, price, stock, moq, category, userId, location, phoneNumber } = req.body;
+            const updateFields = req.body; // Capture the provided fields from the request body
     
             const product = await Product.findById(id);
             if (!product) {
                 return res.status(404).json({ message: "Product not found" });
             }
     
-            // Keep existing images and add new ones if uploaded
-            const newImages = req.files.map(file => file.path);
-            const allImages = [...product.images, ...newImages];
+            // ✅ If new images are uploaded, merge with existing ones
+            if (req.files && req.files.length > 0) {
+                const newImages = req.files.map(file => file.path);
+                updateFields.images = [...product.images, ...newImages];
+            }
     
+            // ✅ Merge existing product data with the provided fields
             const updatedProduct = await Product.findByIdAndUpdate(
                 id,
-                { name, description, price, stock, moq, images: allImages, category, userId, location, phoneNumber },
+                { $set: updateFields }, // Only update the provided fields
                 { new: true, runValidators: true }
             );
     
             res.status(200).json(updatedProduct);
         } catch (error) {
             res.status(500).json({ error: error.message });
-        }
+        }    
     },
 
     deleteImage : async (req, res) => {
         try {
             const { id } = req.params;
-            const { imagePath } = req.body;
+            const { index } = req.body; // Image index instead of path
     
+            // Fetch the product by ID
             const product = await Product.findById(id);
             if (!product) {
                 return res.status(404).json({ message: "Product not found" });
             }
     
-            // Filter out the image to delete
-            const updatedImages = product.images.filter(image => image !== imagePath);
-    
-            // Delete the image from server
-            if (product.images.includes(imagePath)) {
-                fs.unlinkSync(imagePath);
+            // Check if the provided index is valid
+            if (index < 0 || index >= product.images.length) {
+                return res.status(400).json({ message: "Invalid image index" });
             }
     
-            // Update the product with the remaining images
-            product.images = updatedImages;
-            await product.save();
+            // Get the image path based on the index
+            const imagePath = product.images[index];
     
+            // Remove the image from the array
+            product.images.splice(index, 1);
+    
+            // Attempt to delete the file from the server
+            try {
+                const normalizedPath = path.normalize(imagePath);
+                if (fs.existsSync(normalizedPath)) {
+                    fs.unlinkSync(normalizedPath);
+                }
+            } catch (fileError) {
+                console.error("Error deleting file:", fileError);
+            }
+    
+            // Save the updated product data
+            await product.save();
             res.status(200).json({ message: "Image deleted successfully", product });
+    
         } catch (error) {
             res.status(500).json({ error: error.message });
         }

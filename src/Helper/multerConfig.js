@@ -1,6 +1,7 @@
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 // Ensure the 'uploads' directory exists
 const uploadDir = path.join(__dirname, '../uploads');
@@ -14,7 +15,9 @@ const storage = multer.diskStorage({
         cb(null, uploadDir);
     },
     filename: (req, file, cb) => {
-        cb(null, `${Date.now()}-${file.originalname}`);
+        const uniqueSuffix = crypto.randomBytes(8).toString('hex'); 
+        const fileExtension = path.extname(file.originalname);
+        cb(null, `${Date.now()}-${uniqueSuffix}${fileExtension}`);
     }
 });
 

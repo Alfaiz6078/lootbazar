@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
 
-const profileViewSchema = new mongoose.Schema({
-    viewedUserId: {
+const notificationSchema = new mongoose.Schema({
+    productId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        ref: 'Product',
         required: true
     },
     viewerUserId: {
@@ -14,8 +14,12 @@ const profileViewSchema = new mongoose.Schema({
     viewedAt: {
         type: Date,
         default: Date.now
+    },
+    isRead: {
+        type: Boolean,
+        default: false
     }
 }, { timestamps: true });
 
-const ProfileView = mongoose.model('ProfileView', profileViewSchema);
-module.exports = ProfileView;
+const Notification = mongoose.model('Notification', notificationSchema);
+module.exports = Notification;

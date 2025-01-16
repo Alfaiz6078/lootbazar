@@ -42,7 +42,7 @@ const ProductController = {
             }
 
             // Capture image file paths
-            const images = req.files.map(file => file.path); 
+            const images = req.files.map(file => file.filename); 
 
             const newProduct = new Product({
                 title,
@@ -165,35 +165,58 @@ const ProductController = {
     listBycategoryId: async (req, res) => {
         try {
             const { categoryId } = req.params;
+            const { page = 1, limit = 10 } = req.query; // Default values for page and limit
     
-            // Find all products with the provided category ID
-            const products = await Product.find({ category: categoryId }).populate('category');
+            // Convert page and limit to numbers
+            const pageNumber = parseInt(page);
+            const limitNumber = parseInt(limit);
+    
+            // Fetch products with pagination
+            const products = await Product.find({ category: categoryId })
+                .skip((pageNumber - 1) * limitNumber)
+                .limit(limitNumber);
+    
+            // Count total products for the category
+            const totalProducts = await Product.countDocuments({ category: categoryId });
     
             if (products.length === 0) {
                 return res.status(404).json({ message: "No products found for this category." });
             }
     
-            res.status(200).json(products);
+            res.status(200).json({
+                products,
+                totalPages: Math.ceil(totalProducts / limitNumber),
+                currentPage: pageNumber,
+                totalProducts
+            });
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
-    },
+    },    
 
     searchProduct: async (req, res) => {
         try {
-            const { title } = req.query; // Get title from query parameter
+            const { title, category } = req.query; // Get title and category from query parameters
     
-            if (!title) {
-                return res.status(400).json({ error: "Please provide a product title to search." });
+            // Check if both title and category are missing
+            if (!title && !category) {
+                return res.status(400).json({ error: "Please provide a product title or category to search." });
             }
     
-            // Case-insensitive search using a regular expression
-            const products = await Product.find({
-                title: { $regex: new RegExp(title, "i") }
-            });
+            // Build the query object dynamically
+            let query = {};
+            if (title) {
+                query.title = { $regex: new RegExp(title, "i") }; // Case-insensitive search for title
+            }
+            if (category) {
+                query.category = category; // Exact match for category ID
+            }
+    
+            // Search products based on the constructed query
+            const products = await Product.find(query);
     
             if (products.length === 0) {
-                return res.status(404).json({ message: "No products found with that title." });
+                return res.status(404).json({ message: "No products found with the provided criteria." });
             }
     
             res.status(200).json(products);

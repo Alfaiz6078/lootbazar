@@ -6,7 +6,8 @@ const userController = require('../controllers/UserController');
 const ProductController = require('../controllers/ProductController');
 const CategoryController = require('../controllers/CategoryController');
 const StatusController = require('../controllers/StatusController');
-const ProfileController = require('../controllers/ProfileController');
+const notificationController = require('../controllers/NotificationController');
+const {sendOtpHandler} = require('../controllers/otpController');
 
 //user routes
 router.get('/user/index', userController.index);
@@ -14,7 +15,7 @@ router.post('/register', upload.single('profileImage'), userController.store);
 router.get('/profile/:id/edit', userController.edit);
 router.put('/profile/:id/update', upload.single('profileImage'),userController.update);
 router.delete('/profile/:id/delete', userController.delete);
-
+router.post('/send-otp', sendOtpHandler);
 //product routes
 router.get('/products', ProductController.index);
 router.post('/products/store', upload.array('images', 5), ProductController.store);
@@ -44,11 +45,9 @@ router.post('/status/store', upload.single('media'), StatusController.store);
 router.get('/status', StatusController.index);
 router.delete('/status/:id', StatusController.deleteStatus);
 
-//profile routes
-// Route to track a profile view
-router.post('/profile/view/:viewedUserId', ProfileController.viewProfileuser);
-// Route to list who viewed the profile
-router.get('/profile/views/:viewedUserId', ProfileController.viewProfilelist);
+//Notification routes
+router.post('/products/:productId/view', notificationController.viewProduct);
+router.get('/notifications', notificationController.getNotifications);
 
 
 module.exports = router;
